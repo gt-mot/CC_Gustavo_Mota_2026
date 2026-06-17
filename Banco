@@ -1,0 +1,322 @@
+DROP DATABASE IF EXISTS sistema_web;
+CREATE DATABASE sistema_web;
+USE sistema_web;
+
+CREATE TABLE paises (
+    id_pais INT AUTO_INCREMENT PRIMARY KEY,
+    pais VARCHAR(60) NOT NULL,
+    sigla CHAR(3) NOT NULL UNIQUE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE estados (
+    id_estado INT AUTO_INCREMENT PRIMARY KEY,
+    estado VARCHAR(50) NOT NULL,
+    uf VARCHAR(2) NOT NULL,
+    id_pais INT NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT uq_estado UNIQUE (uf, id_pais),
+    CONSTRAINT fk_estado_pais
+        FOREIGN KEY (id_pais) REFERENCES paises(id_pais)
+);
+
+CREATE TABLE cidades (
+    id_cidade INT AUTO_INCREMENT PRIMARY KEY,
+    cidade VARCHAR(60) NOT NULL,
+    id_estado INT NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT uq_cidade UNIQUE (cidade, id_estado),
+    CONSTRAINT fk_cidade_estado
+        FOREIGN KEY (id_estado) REFERENCES estados(id_estado)
+);
+
+CREATE TABLE cargos (
+    id_cargo INT AUTO_INCREMENT PRIMARY KEY,
+    cargo VARCHAR(30) NOT NULL UNIQUE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE funcionarios (
+    id_funcionario INT AUTO_INCREMENT PRIMARY KEY,
+    funcionario VARCHAR(50) NOT NULL,
+    apelido VARCHAR(50),
+    telefone VARCHAR(15),
+    id_cargo INT NOT NULL,
+    salario DECIMAL(10,2),
+    logradouro VARCHAR(50),
+    numero VARCHAR(10),
+    complemento VARCHAR(50),
+    bairro VARCHAR(50),
+    cep VARCHAR(8),
+    id_cidade INT NOT NULL,
+    cpf VARCHAR(11) NOT NULL UNIQUE,
+    rg VARCHAR(20),
+    data_nascimento DATE,
+    email VARCHAR(50),
+    data_contratado DATE,
+    data_demitido DATE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_funcionario_cidade
+        FOREIGN KEY (id_cidade) REFERENCES cidades(id_cidade),
+    CONSTRAINT fk_funcionario_cargo
+        FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo)
+);
+
+CREATE TABLE formas_pagamento (
+    id_forma_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+    forma_pagamento VARCHAR(50) NOT NULL UNIQUE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE condicao_pagamento (
+    id_condicao INT AUTO_INCREMENT PRIMARY KEY,
+    cond_pagamento VARCHAR(50) NOT NULL UNIQUE,   
+    num_parcelas INT NOT NULL DEFAULT 1,                
+    taxa_juros DECIMAL(5,2) NOT NULL DEFAULT 0.00,  
+    multa DECIMAL(5,2) NOT NULL DEFAULT 0.00,       
+    desconto DECIMAL(5,2) NOT NULL DEFAULT 0.00,    
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(1) NOT NULL,
+    cliente VARCHAR(50) NOT NULL,
+    logradouro VARCHAR(40),
+    numero VARCHAR(10),
+    complemento VARCHAR(50),
+    bairro VARCHAR(40),
+    cep VARCHAR(8),
+    id_cidade INT NOT NULL,
+    email VARCHAR(50),
+    telefone VARCHAR(15) DEFAULT NULL,
+    data_nascimento DATE,
+    cpf VARCHAR(11) NOT NULL UNIQUE,
+    cnpj VARCHAR(14) NOT NULL UNIQUE,
+    rg VARCHAR(20),
+    limiteCredito DECIMAL (10,2) NOT NULL,
+    id_condicao INT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_cliente_cidade
+        FOREIGN KEY (id_cidade) REFERENCES cidades(id_cidade),
+    CONSTRAINT fk_cliente_condicao_pagamento
+        FOREIGN KEY (id_condicao) REFERENCES condicao_pagamento(id_condicao)
+);
+
+CREATE TABLE fornecedores (
+    id_fornecedor INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(1) NOT NULL,
+    fornecedor VARCHAR(50) NOT NULL,     
+    nome_fantasia VARCHAR(50) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    telefone VARCHAR(15) NOT NULL,
+    site VARCHAR (50) NOT NULL,
+    logradouro VARCHAR(50) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    complemento VARCHAR(60) NOT NULL,
+    bairro VARCHAR(50) NOT NULL,
+    cep VARCHAR(8) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL UNIQUE,
+    cpf VARCHAR(11) UNIQUE,
+    rg VARCHAR(20),
+    limiteCredito DECIMAL (10,2) NOT NULL,
+    id_cidade INT NOT NULL,
+    id_condicao INT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_fornecedor_cidade
+        FOREIGN KEY (id_cidade) REFERENCES cidades(id_cidade),
+    CONSTRAINT fk_fornecedor_condicao_pagamento
+        FOREIGN KEY (id_condicao) REFERENCES condicao_pagamento(id_condicao)
+);
+
+CREATE TABLE transportadores (
+    id_transportador INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(1) NOT NULL,
+    transportador VARCHAR(50) NOT NULL,
+    logradouro VARCHAR(50) NOT NULL,
+    numero VARCHAR(6) NOT NULL,
+    complemento VARCHAR(20) NOT NULL,
+    bairro VARCHAR(30) NOT NULL,
+    id_cidade INT NOT NULL,
+    cep VARCHAR(8) NOT NULL,
+    cpf VARCHAR(11) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    site VARCHAR(50) NOT NULL,
+    inscricao_estadual VARCHAR(30),
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_transportador_cidade
+        FOREIGN KEY (id_cidade) REFERENCES cidades(id_cidade)
+);
+
+CREATE TABLE marcas_veiculo (
+    id_marca_veiculo INT AUTO_INCREMENT PRIMARY KEY,
+    marca VARCHAR(20) NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE modelos (
+    id_modelo INT AUTO_INCREMENT PRIMARY KEY,
+    modelo VARCHAR(30) NOT NULL,
+    id_marca_veiculo INT NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_modelo_marca_veiculo
+        FOREIGN KEY (id_marca_veiculo) REFERENCES marcas_veiculo(id_marca_veiculo)
+);
+
+CREATE TABLE veiculos (
+    id_veiculo INT AUTO_INCREMENT PRIMARY KEY,
+    veiculo VARCHAR(30) NOT NULL,
+    placa VARCHAR(7) NOT NULL,
+    placa_mercosul VARCHAR(7) NOT NULL,
+    id_estado INT NOT NULL,
+    codigo_antt VARCHAR(20) NOT NULL,
+    id_modelo INT NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_veiculo_estado
+        FOREIGN KEY (id_estado) REFERENCES estados(id_estado),
+    CONSTRAINT fk_veiculo_modelo
+        FOREIGN KEY (id_modelo) REFERENCES modelos(id_modelo)
+);
+
+CREATE TABLE marcas (
+    id_marca INT AUTO_INCREMENT PRIMARY KEY,
+    marca VARCHAR(50) NOT NULL UNIQUE,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE categorias (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    categoria VARCHAR(50) NOT NULL UNIQUE,
+    descricao VARCHAR(50),
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE produtos (
+    id_produto INT AUTO_INCREMENT PRIMARY KEY,
+    produto VARCHAR(50) NOT NULL,
+    unidade VARCHAR(3) NOT NULL,
+    peso_bruto DECIMAL(10,3) NOT NULL,
+    peso_liquido DECIMAL(10,3) NOT NULL,
+    preco_venda DECIMAL(10,2) NOT NULL,
+    preco_compra DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo DECIMAL(10,2) NOT NULL,
+    id_marca INT NOT NULL,
+    id_categoria INT NOT NULL,
+    data_inclusao  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario        VARCHAR(50) DEFAULT NULL,
+    CONSTRAINT fk_produto_marca
+        FOREIGN KEY (id_marca) REFERENCES marcas(id_marca),
+    CONSTRAINT fk_produto_categoria
+        FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
+);
+
+CREATE TABLE condicao_pagamento_parcelas (
+    id_condicao        INT NOT NULL,
+    id_forma_pagamento INT NOT NULL,
+    numero_parcela     INT NOT NULL,
+    dias_vencimento    INT NOT NULL DEFAULT 0,
+    percentual         DECIMAL(5,2) NOT NULL DEFAULT 100.00,
+    data_inclusao      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario            VARCHAR(50) DEFAULT NULL,
+
+    PRIMARY KEY (id_condicao, numero_parcela),
+
+    CONSTRAINT fk_cpp_condicao FOREIGN KEY (id_condicao)
+        REFERENCES condicao_pagamento (id_condicao)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_cpp_forma FOREIGN KEY (id_forma_pagamento)
+        REFERENCES formas_pagamento (id_forma_pagamento)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE contas_pagar (
+    id_pedido_compra   INT NOT NULL,
+    numero_parcela     INT NOT NULL,
+    id_forma_pagamento INT NOT NULL,
+    valor              DECIMAL(12,2) NOT NULL,
+    vencimento         DATE NOT NULL,
+    status             ENUM('ABERTA','PAGA','CANCELADA') NOT NULL DEFAULT 'ABERTA',
+    data_pagamento     DATE DEFAULT NULL,
+    data_inclusao      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario            VARCHAR(50) DEFAULT NULL,
+    PRIMARY KEY (id_pedido_compra, numero_parcela),
+    INDEX idx_cp_status (status, vencimento),
+    INDEX idx_cp_forma (id_forma_pagamento),
+    CONSTRAINT fk_cp_forma FOREIGN KEY (id_forma_pagamento)
+        REFERENCES formas_pagamento (id_forma_pagamento)
+);
+
+CREATE TABLE contas_receber (
+    id_venda           INT NOT NULL,
+    numero_parcela     INT NOT NULL,
+    id_forma_pagamento INT NOT NULL,
+    valor              DECIMAL(12,2) NOT NULL,
+    vencimento         DATE NOT NULL,
+    status             ENUM('ABERTA','RECEBIDA','CANCELADA') NOT NULL DEFAULT 'ABERTA',
+    data_recebimento   DATE DEFAULT NULL,
+    data_inclusao      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario            VARCHAR(50) DEFAULT NULL,
+    PRIMARY KEY (id_venda, numero_parcela),
+    INDEX idx_cr_status (status, vencimento),
+    INDEX idx_cr_forma (id_forma_pagamento),
+    CONSTRAINT fk_cr_forma FOREIGN KEY (id_forma_pagamento)
+        REFERENCES formas_pagamento (id_forma_pagamento)
+);
+
+CREATE TABLE logs (
+    id            INT NOT NULL AUTO_INCREMENT,
+    tipo          ENUM('ACESSO','ERRO','AUTH','AVISO') NOT NULL DEFAULT 'ACESSO',
+    nivel         ENUM('INFO','WARN','ERROR') NOT NULL DEFAULT 'INFO',
+    metodo        VARCHAR(10) DEFAULT NULL,
+    rota          VARCHAR(255) DEFAULT NULL,
+    status_code   INT DEFAULT NULL,
+    duracao_ms    INT DEFAULT NULL,
+    usuario       VARCHAR(100) DEFAULT NULL,
+    ip            VARCHAR(45) DEFAULT NULL,
+    mensagem      TEXT DEFAULT NULL,
+    data_inclusao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    usuario_log   VARCHAR(50) DEFAULT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_tipo (tipo, nivel, data_inclusao),
+    INDEX idx_usuario (usuario, data_inclusao)
+);
